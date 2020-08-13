@@ -1,0 +1,15 @@
+{
+  "name": "spelling-bee",
+  "collaborators": [
+    "Nicholas Miklaucic <nicholas.miklaucic@gmail.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "spelling_bee_bg.wasm",
+    "spelling_bee.js",
+    "spelling_bee.d.ts"
+  ],
+  "module": "spelling_bee.js",
+  "types": "spelling_bee.d.ts",
+  "sideEffects": "false"
+}
