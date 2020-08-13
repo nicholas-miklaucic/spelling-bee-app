@@ -169,6 +169,9 @@ async function main() {
             } else {
                 curr_step.removeClass("active");
             }
+            if (!hasSet) {
+                $("#step2").addClass("active");
+            }
         });
     }
 
