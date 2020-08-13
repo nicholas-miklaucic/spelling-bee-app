@@ -59,12 +59,15 @@ if (currentTheme) {
 
 
 async function main() {
-    await init();
-    
     const url_params = new URLSearchParams(window.location.search);
     if (!url_params.has("center") || !url_params.has("others")) {
         window.location.href = "setup.html";
     }
+
+    await init();
+
+    let numAlerts = 0;
+    
     const center_letter = url_params.get('center').toLowerCase();
     let other_letters = url_params.get('others').toLowerCase();
 
@@ -120,12 +123,19 @@ async function main() {
 
     function makeAlert(msg, toast_cls) {
         $("#alert-box").empty();
+        numAlerts += 1;
+        const oldNumAlerts = numAlerts;
         $("#alert-box").append(`<div class="toast toast-` + toast_cls + `" mx-auto">
   <button class="btn btn-clear float-right" id="close-toast-btn"></button>` + msg +
  '</div>');
         $("#close-toast-btn").on("click", function (evt) {
             $("#alert-box").empty();
         });
+        setTimeout(function() {
+            if (numAlerts == oldNumAlerts) {
+                $("#alert-box").empty();
+            }
+        }, 2000);
     }
 
     $("#score-steps").empty();
@@ -151,7 +161,6 @@ async function main() {
             let curr_step = $("#step" + Math.round(prop * 100));
             if (score >= numPts && !hasSet) {
                 if (!curr_step.hasClass("active")) {
-                    console.log("hi " + name);
                     makeAlert("Congratulations, you got " + name + "!", "success");
                 }
                 curr_step.addClass("active");
@@ -176,6 +185,10 @@ async function main() {
 
             $("#alert-box").empty();
             setScore(game.score());
+
+            if (game.is_pangram(word)) {
+                makeAlert("Pangram!", "success");
+            }
 
             curr_word = "";
             $("#curr-word").empty();

@@ -66,6 +66,7 @@ a.btn.btn-word {
 .panel-title {
     font-weight: 600;
     font-size: 1rem;
+    color: var(--fg-color);
 }
 
 #score-bar-container {
