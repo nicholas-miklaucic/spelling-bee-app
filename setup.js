@@ -1,3 +1,8 @@
+const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+}
+
 function submit() {
     const BASE_URL = window.location.origin;
 
@@ -12,7 +17,7 @@ function submit() {
         "?center=" +
         center.toUpperCase() +
         "&others=" +
-        other_letters.toUpperCase();
+        other_letters.toUpperCase().split('').sort().join('');
 }
 
 document.getElementById("submit").onClick = submit;

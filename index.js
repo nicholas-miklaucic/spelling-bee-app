@@ -18,13 +18,23 @@ $.get("./swears.txt", function (data) {
     swears = data;
 });
 
-console.log(swears);
-
 const VALID = 0;
 const ALREADY_PLAYED = 1;
 const INVALID_WORD = 2;
 const INVALID_LENGTH = 3;
 const INVALID_LETTERS = 4;
+
+const TIERS = {
+    "Good Start": 0.02,
+    "Moving Up": 0.05,
+    "Good": 0.08,
+    "Solid": 0.15,
+    "Nice": 0.25,
+    "Great": 0.4,
+    "Amazing": 0.5,
+    "Genius": 0.7,
+    "Queen Bee": 1
+};
 
 // from
 // https://dev.to/ananyaneogi/create-a-dark-light-mode-switch-with-css-variables-34l8
@@ -56,7 +66,7 @@ async function main() {
         window.location.href = "setup.html";
     }
     const center_letter = url_params.get('center').toLowerCase();
-    const other_letters = url_params.get('others').toLowerCase();
+    let other_letters = url_params.get('others').toLowerCase();
 
     const game = SpellingBeeGame.new(other_letters, center_letter, main_words, swears);
 
@@ -86,6 +96,28 @@ async function main() {
         return btn;
     }
 
+    function makePanel() {
+        played_words = played_words.sort();
+        let letters = [center_letter];
+        other_letters.split('').forEach(l => letters.push(l));
+        letters = letters.sort();
+
+        $("#played-words").empty();
+        letters.forEach(function (letter) {
+            let toAdd = "<div class='panel'>";
+            toAdd += "<div class='panel-header'><div class='panel-title'>";
+            toAdd += letter.toUpperCase();
+            toAdd += "</div></div>";
+            toAdd += "<div class='panel-body'>";
+            played_words.filter(word => word[0].toUpperCase() == letter.toUpperCase()).forEach(function (word) {
+                toAdd += makeWordBtn(word);
+            });
+            toAdd += "</div></div>";
+            $("#played-words").append(toAdd);
+        })
+    }
+    makePanel();
+
     function makeAlert(msg, toast_cls) {
         $("#alert-box").empty();
         $("#alert-box").append(`<div class="toast toast-` + toast_cls + `" mx-auto">
@@ -96,34 +128,53 @@ async function main() {
         });
     }
 
+    $("#score-steps").empty();
+    Object.entries(TIERS).sort((e1, e2) => e1[1] - e2[1]).forEach((arr, i) => {
+        let name = arr[0];
+        let prop = arr[1];
+        const numPts = Math.round(prop * max_score);
+        let toAdd = "<li class='step-item' id='step" + Math.round(prop * 100) + "'>";
+        toAdd += ("<a href='#' class='tooltip' data-tooltip='" + numPts + " points'>" + name + "</a></li>");
+        $("#score-steps").append(toAdd);
+    });
+
     function setScore(score) {
         scoreBar.set(score / max_score);
         let string = score.toString();
-        if (score === 1) {
-            string += " point";
-        } else {
-            string += " points";
-        }
         $("#score").text(string);
+
+        let hasSet = false;
+        Object.entries(TIERS).sort((e1, e2) => e2[1] - e1[1]).forEach((arr, i) => {
+            let name = arr[0];
+            let prop = arr[1];
+            let numPts = Math.round(prop * max_score);
+            let curr_step = $("#step" + Math.round(prop * 100));
+            if (score >= numPts && !hasSet) {
+                if (!curr_step.hasClass("active")) {
+                    console.log("hi " + name);
+                    makeAlert("Congratulations, you got " + name + "!", "success");
+                }
+                curr_step.addClass("active");
+                hasSet = true;
+            } else {
+                curr_step.removeClass("active");
+            }
+        });
     }
 
     function setNumPlayed(num) {
         let string = num.toString();
-        if (num === 1) {
-            string += " word";
-        } else {
-            string += " words";
-        }
         $("#num-played").text(string);
     }
 
-    function submit() {
-        const result = game.play(curr_word);
+    function play(word) {
+        const result = game.play(word);
         if (result === VALID) {
-            played_words.push(curr_word);
-            $("#played-words").append(makeWordBtn(curr_word));
+            played_words.push(word);
+            makePanel();
             setNumPlayed(played_words.length);
 
+            $("#alert-box").empty();
             setScore(game.score());
 
             curr_word = "";
@@ -145,6 +196,10 @@ async function main() {
             curr_word = "";
             $("#curr-word").empty();
         }
+    }
+
+    function submit() {
+        play(curr_word);
     }
 
     function makeSpan(letter) {
@@ -201,15 +256,52 @@ async function main() {
     }
 
     for (let i = 0; i < 6; i += 1) {
-        $("#other" + (i+1)).prop("value", other_letters.charAt(i));
         $("#other" + (i+1)).on("click", function(_) {
-            handleKeyVal(other_letters.charAt(i));
+            handleKeyVal($("#other" + (i+1)).prop("value"));
         });
     }
+
+    function updateLetters(letters) {
+        for (let i = 0; i < 6; i += 1) {
+            $("#other" + (i+1)).prop("value", letters.charAt(i));
+        }
+    }
+
+    updateLetters(other_letters);
+
+    // from https://stackoverflow.com/questions/3079385/str-shuffle-equivalent-in-javascript
+    function shuffle(string) {
+        var parts = string.split('');
+        for (var i = parts.length; i > 0;) {
+            var random = parseInt(Math.random() * i);
+            var temp = parts[--i];
+            parts[i] = parts[random];
+            parts[random] = temp;
+        }
+        return parts.join('');
+    }
+
     $("#center").prop("value", center_letter);
     $("#center").on("click", function(_) {
         handleKeyVal(center_letter);
     });
+
+    $("#delete-btn").on("click", function(_) {
+        handleKeyVal("Backspace");
+    });
+
+    $("#enter-btn").on("click", function(_) {
+        handleKeyVal("Enter");
+    });
+
+    $("#shuffle-btn").on("click", function(_) {
+        other_letters = shuffle(other_letters);
+        updateLetters(other_letters);
+    });
+
+    // $("#soln-btn").on("click", function(_) {
+    //     game.words.forEach(word => play(word));
+    // })
 
     $("#submit").on("click", submit);
     $("#body").keydown(handleKeyPress);
