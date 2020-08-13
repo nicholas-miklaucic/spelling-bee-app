@@ -2,7 +2,8 @@
 @font-face{
     font-family:"Applied Sans";
     font-weight: 100;
-    src:url("Fonts/198c2095-dbb0-4081-b279-356541474a8b.woff2") format("woff2"),url("Fonts/bff75705-04bd-4e80-93d7-ee67e556bd23.woff") format("woff");
+    src:url("Fonts/198c2095-dbb0-4081-b279-356541474a8b.woff2") format("woff2"
+),url("Fonts/bff75705-04bd-4e80-93d7-ee67e556bd23.woff") format("woff");
 }
 @font-face{
     font-family:"Applied Sans";
