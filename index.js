@@ -147,6 +147,7 @@ async function main() {
         toAdd += ("<a href='#' class='tooltip' data-tooltip='" + numPts + " points'>" + name + "</a></li>");
         $("#score-steps").append(toAdd);
     });
+    $("#step2").addClass("active");
 
     function setScore(score) {
         scoreBar.set(score / max_score);
